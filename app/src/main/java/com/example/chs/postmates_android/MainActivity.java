@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.Request;
@@ -24,6 +26,7 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        final TextView tv = (TextView)findViewById(R.id.tv);
 
         PostmatesAPI api = new PostmatesAPI();
         api.postDeliveryQuote(new DeliveryQuote("20 McAllister St, San Francisco, CA" ,
@@ -37,8 +40,12 @@ public class MainActivity extends ActionBarActivity {
             public void onResponse(Response response) throws IOException {
                 String respStr = response.body().string();
                 try{
-                    JSONObject quote = new JSONObject(respStr);
-                    Log.d("Quote: " , quote.toString());
+                    final JSONObject quote = new JSONObject(respStr);
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            tv.setText(quote.toString());
+                        }
+                    });
                 }
                 catch (JSONException e){
 
@@ -66,6 +73,7 @@ public class MainActivity extends ActionBarActivity {
             }
         });
         */
+
 
         /*
         api.postDelivery(null, new Callback() {

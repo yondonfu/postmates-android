@@ -5,6 +5,7 @@ import android.util.Log;
 import com.squareup.okhttp.Authenticator;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Credentials;
+import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -16,6 +17,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.Proxy;
 import java.util.HashMap;
+import java.util.Set;
 
 import javax.security.auth.callback.Callback;
 import okio.BufferedSink;
@@ -52,12 +54,12 @@ public class PostmatesAPI {
     //POST https://api.postmates.com/v1/customers/:customer_id/delivery_quotes
     public void postDeliveryQuote(DeliveryQuote quote, com.squareup.okhttp.Callback callback){
         String url = baseUrl + "customers/" + customerId + "/delivery_quotes";
-        String json = "{ \"dropoff_address\" : " +  "\"" + quote.getDropoffAddress() + "\"" +" , \"pickup_address\" : "
-                + "\"" + quote.getPickupAddress() + "\"" + "}";
-        Log.v("JSON" , json);
+        HashMap<String, String> map = new HashMap<>();
+        map.put("dropoff_address", quote.getDropoffAddress());
+        map.put("pickup_address" , quote.getPickupAddress());
 
         try{
-            post(url, json, callback);
+            post(url, map, callback);
         }
         catch (IOException e){
             e.printStackTrace();
@@ -67,9 +69,9 @@ public class PostmatesAPI {
     //POST https://api.postmates.com/v1/customers/:customer_id/deliveries
     public void postDelivery(Delivery delivery, com.squareup.okhttp.Callback callback){
        String url = baseUrl + "customers/" + customerId + "/deliveries";
-       JSONObject postParams = new JSONObject(delivery.hashMapRepresentation());
+       HashMap<String, String> map = delivery.hashMapRepresentation();
        try{
-           post(url, postParams.toString(), callback);
+           post(url, map, callback);
        }
        catch (IOException e){
            e.printStackTrace();
@@ -97,10 +99,18 @@ public class PostmatesAPI {
         return call;
     }
 
-    public Call post(String url, String json, com.squareup.okhttp.Callback callback) throws IOException {
-        RequestBody body = RequestBody.create(JSON, json);
+    public Call post(String url, HashMap<String, String> map, com.squareup.okhttp.Callback callback) throws IOException {
+        FormEncodingBuilder builder = new FormEncodingBuilder();
+        Set<String> allKeys = map.keySet();
+        Object[] keysArr = allKeys.toArray();
+        for(int i = 0; i < map.size(); i++){
+            String key = (String)keysArr[i];
+            builder.add(key, map.get(key));
+        }
+        RequestBody body = builder.build();
         Request request = new Request.Builder()
                 .url(url)
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .post(body)
                 .build();
         Call call = client.newCall(request);
