@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -27,77 +28,30 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         final TextView tv = (TextView)findViewById(R.id.tv);
-
         PostmatesAPI api = new PostmatesAPI();
+
+        /*
+
+        MAKE A DELIVERY REQUEST:
+
+        Delivery testDelivery = new Delivery("del_KSsT9zJdfV3P9k", "A box of gray kittens" ,
+                "Kitten Warehouse" , "20 McAllister St, San Francisco, CA", "415-555-4242",
+                "Ring the doorbell twice, and only delivery the package if a human answers.","Alice",
+                "678 Green St, San Francisco, CA", "415-555-8484", "Tell the security guard " +
+                "that you're here to see Alice.");
+        testDelivery.setManifestRef("Order #690");
+        testDelivery.setPickupBusinessName("Feline Enterprises, Inc.");
+        testDelivery.setDropoffBusinessName("Alice's Cat Cafe");
+        api.postDelivery(testDelivery, testCallback);
+        */
+
+        api.getDeliveryWithId("1", new TestCallback("GET ID DELIVERY", this, tv));
         api.postDeliveryQuote(new DeliveryQuote("20 McAllister St, San Francisco, CA" ,
-                "101 Market St, San Francisco, CA"), new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-
-            }
-
-            @Override
-            public void onResponse(Response response) throws IOException {
-                String respStr = response.body().string();
-                try{
-                    final JSONObject quote = new JSONObject(respStr);
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            tv.setText(quote.toString());
-                        }
-                    });
-                }
-                catch (JSONException e){
-
-                }
-            }
-        });
-
-        /*
-        api.getAllDeliveries(new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-
-            }
-
-            @Override
-            public void onResponse(Response response) throws IOException {
-                String respStr = response.body().string();
-                try{
-                    JSONObject allDeliveries = new JSONObject(respStr);
-                    Log.d("Deliveries List: " , allDeliveries.toString());
-                }
-                catch (JSONException e){
-
-                }
-            }
-        });
-        */
-
-
-        /*
-        api.postDelivery(null, new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-
-            }
-
-            @Override
-            public void onResponse(Response response) throws IOException {
-                String respStr = response.body().string();
-                try{
-                    JSONObject postDelivResp = new JSONObject(respStr);
-                    Log.d("Post Delivery: " , postDelivResp.toString());
-                }
-                catch (JSONException e){
-                    e.printStackTrace();
-                }
-            }
-        });
-        */
-
+                "101 Market St, San Francisco, CA"), new TestCallback("POST QUOTE", this, tv));
+        api.getAllDeliveries(new TestCallback("GET ALL DELIVERIES", this, tv));
+        api.cancelDeliveryWithId("1", new TestCallback("CANCEL DELIVERY", this, tv));
+        api.returnDeliveryWithId("1", new TestCallback("RETURN DELIVERY", this, tv));
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
